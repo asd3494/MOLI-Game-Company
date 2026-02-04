@@ -23,8 +23,8 @@ int main() {
 		
 		cout << "Successfully served index.html" << endl;
 	});
-	if (!svr.listen("localhost", 1235)) {
-		cerr << "错误：端口 1235 可能已被占用！" << endl;
+	if (!svr.listen("localhost", 8080)) {
+		cerr << "错误：端口 8080 可能已被占用！" << endl;
 		cerr << "请尝试：" << endl;
 		cerr << "1. 关闭占用该端口的程序" << endl;
 		cerr << "2. 使用其他端口号" << endl;
@@ -34,3 +34,4 @@ int main() {
 	
 	return 0;
 }
+
