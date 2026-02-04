@@ -1,0 +1,28 @@
+name: cpp-http-server-ci
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t cpp-http-server .
+
+      - name: Run container (smoke test)
+        run: |
+          docker run -d \
+            -p 8080:8080 \
+            --name test_server \
+            cpp-http-server
+
+          sleep 2
+          docker logs test_server
+
+          docker stop test_server
