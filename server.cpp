@@ -8,7 +8,28 @@
 
 using namespace std;
 
+bool isUIDAllowed(const string& uid) {
+	ifstream file("allow.txt");
+	if (!file.is_open()) {
+		return false;
+	}
+	string line;
+	while (getline(file, line)) {
+		line.erase(line.find_last_not_of(" \n\r\t") + 1);
+		if (line == uid) {
+			file.close();
+			return true;
+		}
+	}
+	file.close();
+	return false;
+}
+
 bool findUserInFile(const string& username, const string& password) {
+	if (!isUIDAllowed(username)) {
+		return false;
+	}
+	
 	ifstream file("userlist.txt");
 	if (!file.is_open()) {
 		return false;
@@ -95,6 +116,22 @@ int main() {
 		cout << "Successfully served signup_page.html" << endl;
 	});
 	
+	svr.Get("/auth/uid", [](const httplib::Request& req, httplib::Response& res) {
+		string auth_header = req.get_header_value("Authorization");
+		
+		if (auth_header.empty() || auth_header.find("Bearer ") != 0) {
+			res.status = 401;
+			res.set_content("Unauthorized", "text/plain");
+			return;
+		}
+		
+		string token = auth_header.substr(7);
+		token.erase(token.find_last_not_of(" \n\r\t") + 1);
+		
+		res.set_content(token, "text/plain");
+		cout << "[AUTH] UID retrieved: " << token << endl;
+	});
+	
 	svr.Post("/app/new-user/register", [](const httplib::Request& req, httplib::Response& res) {
 		cout << "[LOG] Received registration request" << endl;
 		string txt_body = req.body;
@@ -110,21 +147,22 @@ int main() {
 			
 			if (username.empty() || password.empty()) {
 				res.status = 400;
-				res.set_content(
-								"{\"status\": \"error\", \"message\": \"Username and password cannot be empty\"}",
-								"application/json"
-								);
+				res.set_content("Username and password cannot be empty", "text/plain");
 				cout << "[LOG] Error: Empty username or password" << endl;
+				return;
+			}
+			
+			if (!isUIDAllowed(username)) {
+				res.status = 403;
+				res.set_content("UID is not authorized to register", "text/plain");
+				cout << "[LOG] Registration rejected: UID not in allow.txt - " << username << endl;
 				return;
 			}
 			
 			ofstream file("userlist.txt", ios::app);
 			if (!file.is_open()) {
 				res.status = 500;
-				res.set_content(
-								"{\"status\": \"error\", \"message\": \"Server error: cannot open user database\"}",
-								"application/json"
-								);
+				res.set_content("Server error: cannot open user database", "text/plain");
 				cerr << "Error: Cannot open userlist.txt for writing" << endl;
 				return;
 			}
@@ -134,17 +172,11 @@ int main() {
 			
 			cout << "[LOG] User registered: " << username << endl;
 			
-			res.set_content(
-							"{\"status\": \"success\", \"message\": \"Registration successful\", \"redirect\": \"/auth/login\"}",
-							"application/json"
-							);
+			res.set_content("Registration successful", "text/plain");
 			
 		} else {
 			res.status = 400;
-			res.set_content(
-							"{\"status\": \"error\", \"message\": \"Data format should be: username:password\"}",
-							"application/json"
-							);
+			res.set_content("Data format should be: username:password", "text/plain");
 			cout << "[LOG] Error: Invalid request body format" << endl;
 		}
 	});
@@ -167,24 +199,20 @@ int main() {
 			bool login_success = findUserInFile(username, password);
 			
 			if (login_success) {
-				res.set_content(
-								"{\"status\": \"success\", \"message\": \"Login successful\", \"redirect\": \"/main\"}",
-								"application/json"
-								);
+				res.set_content(username, "text/plain");
 				cout << "[LOG] Login successful, user: " << username << endl;
 			} else {
-				res.set_content(
-								"{\"status\": \"error\", \"message\": \"Incorrect ID or password\"}",
-								"application/json"
-								);
-				cout << "[LOG] Login failed, user: " << username << endl;
+				if (!isUIDAllowed(username)) {
+					res.set_content("UID not authorized to login", "text/plain");
+					cout << "[LOG] Login rejected: UID not in allow.txt - " << username << endl;
+				} else {
+					res.set_content("Incorrect ID or password", "text/plain");
+					cout << "[LOG] Login failed (wrong password), user: " << username << endl;
+				}
 			}
 		} else {
 			res.status = 400;
-			res.set_content(
-							"{\"status\": \"error\", \"message\": \"Data format should be: ID:password\"}",
-							"application/json"
-							);
+			res.set_content("Data format should be: ID:password", "text/plain");
 			cout << "[LOG] Error: Invalid request body format" << endl;
 		}
 	});

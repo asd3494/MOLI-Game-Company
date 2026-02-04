@@ -4,15 +4,29 @@
     <meta charset="UTF-8">
     <title>MOLI game company</title>
     <style>
-        /* 全局设置 Consolas 字体，确保所有文字生效 */
         * {
             font-family: Consolas, "Courier New", monospace;
-            /* 可选：消除默认边距，让页面布局更整洁 */
             margin: 0;
             padding: 0;
         }
 
-        /* 404 按钮样式 */
+        /* 右上角UID显示框样式 */
+        .uid-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #444444;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 100;
+            border: 1px solid #666666;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: block; /* 默认隐藏 */
+        }
+
+        /* 其他样式保持不变 */
         .fof {
             position: fixed;
             top: 0;
@@ -26,20 +40,18 @@
             color: white;
             font-size: 50px;
             border: none;
-            /* 修正 CSS 注释格式 */
-            /* z-index:1000; */
         }
 
         .basic {
-            width: 250px; /* 加宽按钮，适配文字长度 */
+            width: 250px;
             height: 30px;
             font-size: 20px;
             cursor: pointer;
             border: none;
             border-radius: 10px;
-            color: white; /* 新增：按钮文字白色更清晰 */
-            transition: background-color 0.3s; /* 悬浮过渡更丝滑 */
-            margin: 5px 0; /* 添加垂直间距 */
+            color: white;
+            transition: background-color 0.3s;
+            margin: 5px 0;
         }
 
         .btn-red {
@@ -49,37 +61,37 @@
         .btn-red:hover {
             background-color: #ff5555;
         }
-		
-		.btn-blu {
+        
+        .btn-blu {
             background-color: #0000ff;
         }
 
         .btn-blu:hover {
             background-color: #5555ff;
         }
-		
-		.btn-gre {
+        
+        .btn-gre {
             background-color: #00aa00;
         }
 
         .btn-gre:hover {
             background-color: #33aa33;
         }
-		
-		.btn-yel {
+        
+        .btn-yel {
             background-color: #cccc00;
         }
 
         .btn-yel:hover {
             background-color: #aaaa55;
         }
-		
-		.btn-yel-sp {
-			position:fixed;
-			top:35%;
-			bottom:38%;
-			left:33%;
-			right:33%;
+        
+        .btn-yel-sp {
+            position:fixed;
+            top:35%;
+            bottom:38%;
+            left:33%;
+            right:33%;
             background-color: #cccc00;
         }
 
@@ -87,45 +99,44 @@
             background-color: #aaaa55;
         }
 
-		.input-style {
-		    width: 200px;       /* 宽度 */
-		    height: 50px;       /* 高度，和按钮一致 */
-		    padding: 0 10px;    /* 内边距，避免文字贴边 */
-		    font-size: 15px;    /* 字体大小，和按钮一致 */
-		    font-family: Consolas, "Courier New", monospace; /* 统一字体 */
-		    border: none;       /* 去掉默认边框 */
-		    border-radius: 10px;/* 圆角，和按钮一致 */
-		    outline: none;      /* 去掉聚焦时的默认外框 */
-			z-index:1111; 
-		}
-		
-		.input-style-sp {
-		position:fixed;
-			top:30%;
-			bottom:33%;
-			left:33%;
-			right:33%;
-		    width: 200px;       /* 宽度 */
-		    height: 50px;       /* 高度，和按钮一致 */
-		    padding: 0 10px;    /* 内边距，避免文字贴边 */
-		    font-size: 15px;    /* 字体大小，和按钮一致 */
-		    font-family: Consolas, "Courier New", monospace; /* 统一字体 */
-		    border: none;       /* 去掉默认边框 */
-		    border-radius: 10px;/* 圆角，和按钮一致 */
-		    outline: none;      /* 去掉聚焦时的默认外框 */
-			z-index:1111; 
-		}
-		
-        /* 单独调整标题样式（可选） */
+        .input-style {
+            width: 200px;
+            height: 50px;
+            padding: 0 10px;
+            font-size: 15px;
+            font-family: Consolas, "Courier New", monospace;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            z-index:1111; 
+        }
+        
+        .input-style-sp {
+            position:fixed;
+            top:30%;
+            bottom:33%;
+            left:33%;
+            right:33%;
+            width: 200px;
+            height: 50px;
+            padding: 0 10px;
+            font-size: 15px;
+            font-family: Consolas, "Courier New", monospace;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            z-index:1111; 
+        }
+
         h1 {
-            margin: 20px; /* 标题添加边距，避免贴边 */
+            margin: 20px;
             font-size: 28px;
             color: #333;
             text-align: center;
         }
-		
-		.mark{
-			position: fixed;
+        
+        .mark{
+            position: fixed;
             top: 0;
             bottom: 0;
             left: 0;
@@ -138,25 +149,30 @@
             font-size: 10px;
             border: none;
             z-index:1000; 
-			display: none; /* 默认隐藏 */
-		}
-		
-		.container {
-			max-width: 500px;
-			margin: 0 auto;
-			padding: 20px;
-			text-align: center;
-		}
-		
-		.buttons-container {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 10px;
-		}
+            display: none;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
+    <!-- 新增：右上角UID显示框 -->
+    <div class="uid-display" id="uidDisplay">
+        UID: <span id="currentUID">未登录</span>
+    </div>
+
     <div class="container">
         <h1>MOLI game company onlined</h1>
         <button class="fof" style="display:none;">404 Not found</button>
@@ -170,36 +186,108 @@
     </div>
 
     <script>
-		var logined = 0;
-		var usersbeok = [1802886, 1384733, 1581608];
-		var UID = 0;
-		
+        var logined = 0;
+        var usersbeok = [1802886, 1384733, 1581608];
+        var UID = 0;
+        var token = localStorage.getItem('userToken'); // 从本地存储获取token
+
+        // 页面加载时检查登录状态并显示UID
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+        });
+
+        // 检查登录状态并更新UID显示
+        function checkLoginStatus() {
+            if (token) {
+                fetch('/auth/uid', {
+                    headers: {'Authorization': `Bearer ${token}`}
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        localStorage.removeItem('userToken');
+                        token = null;
+                        return null;
+                    }
+                })
+                .then(uid => {
+                    if (uid) {
+                        updateUIDDisplay(uid);
+                        logined = 1;
+                        // 更新登录按钮为注销
+                        document.getElementById('lshower').textContent = 'log out';
+                        document.getElementById('lshower').onclick = logout;
+                    } else {
+                        resetUIDDisplay();
+                    }
+                })
+                .catch(error => {
+                    console.error('检查登录状态失败:', error);
+                    resetUIDDisplay();
+                });
+            } else {
+                resetUIDDisplay();
+            }
+        }
+
+        // 更新UID显示
+        function updateUIDDisplay(uid) {
+            document.getElementById('uidDisplay').style.display = 'block';
+            document.getElementById('currentUID').textContent = uid;
+            UID = uid;
+        }
+
+        // 重置UID显示（未登录状态）
+        function resetUIDDisplay() {
+            document.getElementById('uidDisplay').style.display = 'none';
+            document.getElementById('currentUID').textContent = '未登录';
+            UID = 0;
+            logined = 0;
+            // 恢复登录按钮
+            document.getElementById('lshower').textContent = 'log in';
+            document.getElementById('lshower').onclick = showlogin;
+        }
+
+        // 注销函数
+        function logout() {
+            localStorage.removeItem('userToken');
+            token = null;
+            resetUIDDisplay();
+            alert('已注销');
+        }
+
+        // 修改登录逻辑：存储token并更新显示
+        function handleLoginSuccess(uid) {
+            localStorage.setItem('userToken', uid);
+            token = uid;
+            updateUIDDisplay(uid);
+            logined = 1;
+            // 更新按钮为注销
+            document.getElementById('lshower').textContent = 'log out';
+            document.getElementById('lshower').onclick = logout;
+            alert('登录成功！当前用户: ' + uid);
+        }
+
+        // 原函数保持不变
         function gotoluogu() {
             window.location.href = "https://luogu.com.cn/team/94555";
         }
-		
-		function newpost() {
+        
+        function newpost() {
             alert('loading');
         }
-		
-		function gotodomain() {
-			// 检查UID元素是否存在
-			var uidElement = document.getElementById("UID");
-			if (uidElement) {
-				uidElement.style.display = 'block';
-				var id = uidElement.value.trim();
-				alert('loading');
-			} else {
-				alert('UID input element not found');
-			}
+        
+        function gotodomain() {
+            if (UID) {
+                alert('跳转到用户域: ' + UID);
+                // 这里可以添加跳转到用户域的逻辑
+            } else {
+                alert('请先登录');
+            }
         }
-		
-		function login() {
-            window.location.href = "/auth/login";
-		}
-		
-		function showlogin() {
-			// 直接跳转到登录页面
+        
+        function showlogin() {
             window.location.href = "/auth/login";
         }
     </script>
