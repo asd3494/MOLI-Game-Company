@@ -39,6 +39,7 @@
             border-radius: 10px;
             color: white; /* 新增：按钮文字白色更清晰 */
             transition: background-color 0.3s; /* 悬浮过渡更丝滑 */
+            margin: 5px 0; /* 添加垂直间距 */
         }
 
         .btn-red {
@@ -119,6 +120,8 @@
         h1 {
             margin: 20px; /* 标题添加边距，避免贴边 */
             font-size: 28px;
+            color: #333;
+            text-align: center;
         }
 		
 		.mark{
@@ -134,50 +137,70 @@
             color: white;
             font-size: 10px;
             border: none;
-            /* 修正 CSS 注释格式 */
             z-index:1000; 
+			display: none; /* 默认隐藏 */
 		}
 		
+		.container {
+			max-width: 500px;
+			margin: 0 auto;
+			padding: 20px;
+			text-align: center;
+		}
+		
+		.buttons-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+		}
     </style>
 </head>
 <body>
-    <h1>MOLI game company onlined</h1>
-    <button class="fof" style="display:block;">404 Not found</button>
-    <button class="basic btn-blu" onclick="gotoluogu()">main page (luogu team)</button><br>
-	<button class="basic btn-red" onclick="newpost()">new post</button><br>
-	<button class="basic btn-gre" onclick="gotodomain()" id="gotodomain">go to domain</button><br>
-	<button class="basic btn-yel" onclick="showlogin()" id="lshower">sign up</button>
-	<div class="mark" id="mark" style="display:none;">
-		<button class="basic btn-yel-sp" onclick="login()" id="loginner">sign up</button>
-		<input type="number" placeholder="input your Luogu uid" class="input-style-sp" style="display:block;" id="UID">
-	</div>
-	
+    <div class="container">
+        <h1>MOLI game company onlined</h1>
+        <button class="fof" style="display:none;">404 Not found</button>
+        
+        <div class="buttons-container">
+            <button class="basic btn-blu" onclick="gotoluogu()">main page (luogu team)</button>
+            <button class="basic btn-red" onclick="newpost()">new post</button>
+            <button class="basic btn-gre" onclick="gotodomain()" id="gotodomain">go to domain</button>
+            <button class="basic btn-yel" onclick="showlogin()" id="lshower">log in</button>
+        </div>
+    </div>
 
     <script>
-		var logined=0;
-		var usersbeok=[1802886,1384733,1581608];
-		var UID=0;
+		var logined = 0;
+		var usersbeok = [1802886, 1384733, 1581608];
+		var UID = 0;
+		
         function gotoluogu() {
             window.location.href = "https://luogu.com.cn/team/94555";
         }
+		
 		function newpost() {
             alert('loading');
         }
+		
 		function gotodomain() {
-			document.getElementById("UID").style.display='block';
-			var id=document.getElementById("UID").value.trim();
-            alert('loading');
-        }
-		function login(){
-			var lt=document.getElementById("UID").value;
-			if(usersbeok.includes(lt)){
-				logined=1;
-				UID=lt;
+			// 检查UID元素是否存在
+			var uidElement = document.getElementById("UID");
+			if (uidElement) {
+				uidElement.style.display = 'block';
+				var id = uidElement.value.trim();
+				alert('loading');
+			} else {
+				alert('UID input element not found');
 			}
-			document.getElementById("mark").style.display='none';
+        }
+		
+		function login() {
+            window.location.href = "/auth/login";
 		}
+		
 		function showlogin() {
-			document.getElementById("mark").style.display='block';
+			// 直接跳转到登录页面
+            window.location.href = "/auth/login";
         }
     </script>
 </body>

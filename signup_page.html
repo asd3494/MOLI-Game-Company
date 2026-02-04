@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOLI game company - 注册</title>
+    <style>
+        /* 样式完全不变，与登录页保持统一 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #fff;
+            color: #24292f;
+            line-height: 1.5;
+            padding: 2rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .form-container {
+            width: 100%;
+        }
+
+        .input-style {
+            width: 100%;
+            height: 40px;
+            padding: 0 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-style:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 40px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .submit-btn:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .tip {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .tip.success {
+            color: #16a34a;
+        }
+
+        .tip.error {
+            color: #dc2626;
+        }
+
+        .login-link {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #57606a;
+        }
+
+        .login-link a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>MOLI game company - 注册</h1>
+
+    <div class="form-container">
+        <input 
+            type="text" 
+            class="input-style" 
+            id="userName" 
+            placeholder="请设置用户ID"
+            autocomplete="off"
+        >
+        <input 
+            type="password" 
+            class="input-style" 
+            id="userPwd" 
+            placeholder="请设置密码（至少6位）"
+            autocomplete="new-password"
+        >
+        <input 
+            type="password" 
+            class="input-style" 
+            id="userPwdConfirm" 
+            placeholder="请确认密码"
+            autocomplete="new-password"
+        >
+        <button class="submit-btn" id="registerBtn">完成注册</button>
+        <div class="tip" id="tipBox"></div>
+
+        <div class="login-link">
+            已有账号？<a href="login.html" target="_self">立即登录</a>
+        </div>
+    </div>
+
+    <script>
+        let registered = 0;
+        let UID = 0;
+
+        const userNameInput = document.getElementById('userName');
+        const userPwdInput = document.getElementById('userPwd');
+        const userPwdConfirmInput = document.getElementById('userPwdConfirm');
+        const registerBtn = document.getElementById('registerBtn');
+        const tipBox = document.getElementById('tipBox');
+
+        // ========== 核心：纯SHA256哈希函数（与登录页完全一致） ==========
+        async function sha256(password) {
+            try {
+                const passwordUtf8 = new TextEncoder().encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', passwordUtf8);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch (error) {
+                console.error('SHA256哈希失败：', error);
+                throw new Error('密码加密失败');
+            }
+        }
+
+        // ========== 注册提交函数（无盐值，仅提交ID:SHA256哈希值） ==========
+        async function submitRegister() {
+            const userName = userNameInput.value.trim();
+            const rawPwd = userPwdInput.value.trim();
+            const rawPwdConfirm = userPwdConfirmInput.value.trim();
+
+            // 前端原始密码一致性校验（无修改，保证用户输入正确）
+            if (!userName) {
+                showTip('请设置用户ID', 'error');
+                userNameInput.focus();
+                return;
+            }
+            if (!rawPwd) {
+                showTip('请设置密码', 'error');
+                userPwdInput.focus();
+                return;
+            }
+            if (rawPwd.length < 6) {
+                showTip('密码长度不能少于6位', 'error');
+                userPwdInput.focus();
+                return;
+            }
+            if (!rawPwdConfirm) {
+                showTip('请确认密码', 'error');
+                userPwdConfirmInput.focus();
+                return;
+            }
+            if (rawPwd !== rawPwdConfirm) {
+                showTip('两次输入的密码不一致', 'error');
+                userPwdConfirmInput.select();
+                return;
+            }
+
+            registerBtn.disabled = true;
+            registerBtn.innerText = '注册中...';
+            clearTip();
+
+            try {
+                // 原始密码转纯SHA256哈希值
+                const pwdHash = await sha256(rawPwd);
+                // 提交格式：ID:哈希值（无需提交确认密码）
+                const submitText = `${userName}:${pwdHash}`;
+
+                const response = await fetch('/app/new-user/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain; charset=UTF-8'
+                    },
+                    body: submitText
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showTip(result.message || '注册成功！', 'success');
+                    registered = 1;
+                    UID = userName;
+                    console.log('注册成功：', result);
+                    if (result.redirect) {
+                        setTimeout(() => {
+                            window.location.href = result.redirect;
+                        }, 1500);
+                    } else {
+                        resetForm();
+                    }
+                } else if (result.status === 'error') {
+                    showTip(result.message || '注册失败，请稍后重试', 'error');
+                    console.error('注册失败：', result);
+                } else {
+                    showTip('服务器响应格式异常', 'error');
+                }
+            } catch (error) {
+                showTip(error.message || '网络异常或密码加密失败', 'error');
+                console.error('注册请求异常：', error);
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerText = '完成注册';
+            }
+        }
+
+        // 辅助函数（无修改）
+        function showTip(text, type) {
+            tipBox.innerText = text;
+            tipBox.className = `tip ${type}`;
+        }
+        function clearTip() {
+            tipBox.innerText = '';
+            tipBox.className = 'tip';
+        }
+        function resetForm() {
+            userNameInput.value = '';
+            userPwdInput.value = '';
+            userPwdConfirmInput.value = '';
+            userNameInput.focus();
+        }
+
+        // 事件绑定（无修改）
+        registerBtn.addEventListener('click', submitRegister);
+        [userNameInput, userPwdInput, userPwdConfirmInput].forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitRegister();
+            });
+        });
+    </script>
+</body>
+</html>
