@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <title>MOLI game company</title>
     <style>
-        /* 样式保持不变 */
         * {
             font-family: Consolas, "Courier New", monospace;
             margin: 0;
             padding: 0;
         }
 
+        /* 右上角UID显示框样式 */
         .uid-display {
             position: fixed;
             top: 20px;
@@ -23,15 +23,152 @@
             z-index: 100;
             border: 1px solid #666666;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: none;
+            display: block; /* 默认隐藏 */
         }
 
-        /* 其他样式保持不变... */
+        /* 其他样式保持不变 */
+        .fof {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #0000ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 50px;
+            border: none;
+        }
+
+        .basic {
+            width: 250px;
+            height: 30px;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            transition: background-color 0.3s;
+            margin: 5px 0;
+        }
+
+        .btn-red {
+            background-color: #ff0000;
+        }
+
+        .btn-red:hover {
+            background-color: #ff5555;
+        }
         
+        .btn-blu {
+            background-color: #0000ff;
+        }
+
+        .btn-blu:hover {
+            background-color: #5555ff;
+        }
+        
+        .btn-gre {
+            background-color: #00aa00;
+        }
+
+        .btn-gre:hover {
+            background-color: #33aa33;
+        }
+        
+        .btn-yel {
+            background-color: #cccc00;
+        }
+
+        .btn-yel:hover {
+            background-color: #aaaa55;
+        }
+        
+        .btn-yel-sp {
+            position:fixed;
+            top:35%;
+            bottom:38%;
+            left:33%;
+            right:33%;
+            background-color: #cccc00;
+        }
+
+        .btn-yel-sp:hover {
+            background-color: #aaaa55;
+        }
+
+        .input-style {
+            width: 200px;
+            height: 50px;
+            padding: 0 10px;
+            font-size: 15px;
+            font-family: Consolas, "Courier New", monospace;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            z-index:1111; 
+        }
+        
+        .input-style-sp {
+            position:fixed;
+            top:30%;
+            bottom:33%;
+            left:33%;
+            right:33%;
+            width: 200px;
+            height: 50px;
+            padding: 0 10px;
+            font-size: 15px;
+            font-family: Consolas, "Courier New", monospace;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            z-index:1111; 
+        }
+
+        h1 {
+            margin: 20px;
+            font-size: 28px;
+            color: #ffffff;
+            text-align: center;
+        }
+        
+        .mark{
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #000000aa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 10px;
+            border: none;
+            z-index:1000; 
+            display: none;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
-    <!-- 右上角UID显示框 -->
+    <!-- 新增：右上角UID显示框 -->
     <div class="uid-display" id="uidDisplay">
         UID: <span id="currentUID">未登录</span>
     </div>
@@ -53,7 +190,7 @@
         var logined = 0;
         var usersbeok = [1802886, 1384733, 1581608];
         var UID = 0;
-        var token = localStorage.getItem('userToken');
+        var token = localStorage.getItem('userToken'); // 从本地存储获取token
 
         // 页面加载时检查登录状态并显示UID
         document.addEventListener('DOMContentLoaded', function() {
@@ -63,49 +200,33 @@
         // 检查登录状态并更新UID显示
         function checkLoginStatus() {
             if (token) {
-                // 检查token是否有效（不是错误消息）
-                const errorMessages = ["Incorrect ID or password", "UID not authorized"];
-                const isError = errorMessages.some(msg => token.includes(msg));
-                
-                if (!isError) {
-                    fetch('/auth/uid', {
-                        headers: {'Authorization': `Bearer ${token}`}
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            return response.text();
-                        } else {
-                            localStorage.removeItem('userToken');
-                            token = null;
-                            return null;
-                        }
-                    })
-                    .then(uid => {
-                        if (uid) {
-                            // 检查返回的uid是否也是错误消息
-                            const uidError = errorMessages.some(msg => uid.includes(msg));
-                            if (!uidError) {
-                                updateUIDDisplay(uid);
-                                logined = 1;
-                                document.getElementById('lshower').textContent = 'log out';
-                                document.getElementById('lshower').onclick = logout;
-                            } else {
-                                resetUIDDisplay();
-                            }
-                        } else {
-                            resetUIDDisplay();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('检查登录状态失败:', error);
+                fetch('/auth/uid', {
+                    headers: {'Authorization': `Bearer ${token}`}
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        localStorage.removeItem('userToken');
+                        token = null;
+                        return null;
+                    }
+                })
+                .then(uid => {
+                    if (uid) {
+                        updateUIDDisplay(uid);
+                        logined = 1;
+                        // 更新登录按钮为注销
+                        document.getElementById('lshower').textContent = 'log out';
+                        document.getElementById('lshower').onclick = logout;
+                    } else {
                         resetUIDDisplay();
-                    });
-                } else {
-                    // token本身就是错误消息，清除它
-                    localStorage.removeItem('userToken');
-                    token = null;
+                    }
+                })
+                .catch(error => {
+                    console.error('检查登录状态失败:', error);
                     resetUIDDisplay();
-                }
+                });
             } else {
                 resetUIDDisplay();
             }
@@ -124,6 +245,7 @@
             document.getElementById('currentUID').textContent = '未登录';
             UID = 0;
             logined = 0;
+            // 恢复登录按钮
             document.getElementById('lshower').textContent = 'log in';
             document.getElementById('lshower').onclick = showlogin;
         }
@@ -138,19 +260,14 @@
 
         // 修改登录逻辑：存储token并更新显示
         function handleLoginSuccess(uid) {
-            // 检查uid是否有效
-            const errorMessages = ["Incorrect ID or password", "UID not authorized"];
-            const isError = errorMessages.some(msg => uid.includes(msg));
-            
-            if (!isError) {
-                localStorage.setItem('userToken', uid);
-                token = uid;
-                updateUIDDisplay(uid);
-                logined = 1;
-                document.getElementById('lshower').textContent = 'log out';
-                document.getElementById('lshower').onclick = logout;
-                alert('登录成功！当前用户: ' + uid);
-            }
+            localStorage.setItem('userToken', uid);
+            token = uid;
+            updateUIDDisplay(uid);
+            logined = 1;
+            // 更新按钮为注销
+            document.getElementById('lshower').textContent = 'log out';
+            document.getElementById('lshower').onclick = logout;
+            alert('登录成功！当前用户: ' + uid);
         }
 
         // 原函数保持不变
@@ -165,6 +282,7 @@
         function gotodomain() {
             if (UID) {
                 alert('跳转到用户域: ' + UID);
+                // 这里可以添加跳转到用户域的逻辑
             } else {
                 alert('请先登录');
             }
@@ -175,4 +293,3 @@
         }
     </script>
 </body>
-</html>
