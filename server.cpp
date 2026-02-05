@@ -132,6 +132,25 @@ int main() {
         cout << "[AUTH] UID retrieved: " << token << endl;
     });
     
+    // 新增：访问userlist.txt文件
+    svr.Get("/app/userlist.txt", [](const httplib::Request& req, httplib::Response& res) {
+        ifstream file("userlist.txt");
+        if (!file.is_open()) {
+            res.status = 404;
+            res.set_content("File 'userlist.txt' not found!", "text/plain");
+            cerr << "Error: Cannot open userlist.txt for reading" << endl;
+            return;
+        }
+        
+        stringstream buffer;
+        buffer << file.rdbuf();
+        file.close();
+        
+        res.set_content(buffer.str(), "text/plain");
+        res.set_header("Content-Type", "text/plain; charset=utf-8");
+        cout << "[FILE] userlist.txt served" << endl;
+    });
+    
     svr.Post("/app/new-user/register", [](const httplib::Request& req, httplib::Response& res) {
         cout << "[LOG] Received registration request" << endl;
         string txt_body = req.body;
@@ -203,12 +222,10 @@ int main() {
                 cout << "[LOG] Login successful, user: " << username << endl;
             } else {
                 if (!isUIDAllowed(username)) {
-                    // 返回403状态码，方便前端区分
                     res.status = 403;
                     res.set_content("UID not authorized to login", "text/plain");
                     cout << "[LOG] Login rejected: UID not in allow.txt - " << username << endl;
                 } else {
-                    // 返回401状态码，方便前端区分
                     res.status = 401;
                     res.set_content("Incorrect ID or password", "text/plain");
                     cout << "[LOG] Login failed (wrong password), user: " << username << endl;
