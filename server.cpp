@@ -51,8 +51,66 @@ bool findUserInFile(const string& username, const string& password) {
     return false;
 }
 
+// 同步写入到app/userlist.txt的函数
+void syncUserListToAppPath() {
+    ifstream source("userlist.txt");
+    if (!source.is_open()) {
+        cerr << "Error: Cannot open userlist.txt for reading" << endl;
+        return;
+    }
+    
+    ofstream dest("app/userlist.txt");
+    if (!dest.is_open()) {
+        // 尝试创建目录
+        system("mkdir -p app");
+        dest.open("app/userlist.txt");
+        if (!dest.is_open()) {
+            cerr << "Error: Cannot open app/userlist.txt for writing" << endl;
+            source.close();
+            return;
+        }
+    }
+    
+    string line;
+    while (getline(source, line)) {
+        dest << line << endl;
+    }
+    
+    source.close();
+    dest.close();
+    cout << "[SYNC] userlist.txt synced to app/userlist.txt" << endl;
+}
+
+// 读取app/userlist.txt到userlist.txt的函数
+void syncUserListFromAppPath() {
+    ifstream source("app/userlist.txt");
+    if (!source.is_open()) {
+        cerr << "Warning: Cannot open app/userlist.txt for reading, using local userlist.txt" << endl;
+        return;
+    }
+    
+    ofstream dest("userlist.txt");
+    if (!dest.is_open()) {
+        cerr << "Error: Cannot open userlist.txt for writing" << endl;
+        source.close();
+        return;
+    }
+    
+    string line;
+    while (getline(source, line)) {
+        dest << line << endl;
+    }
+    
+    source.close();
+    dest.close();
+    cout << "[SYNC] app/userlist.txt synced to userlist.txt" << endl;
+}
+
 int main() {
     httplib::Server svr;
+    
+    // 启动时从app/userlist.txt同步到本地
+    syncUserListFromAppPath();
     
     svr.Options(".*", [](const httplib::Request& req, httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -132,14 +190,18 @@ int main() {
         cout << "[AUTH] UID retrieved: " << token << endl;
     });
     
-    // 新增：访问userlist.txt文件
+    // 提供app/userlist.txt的访问
     svr.Get("/app/userlist.txt", [](const httplib::Request& req, httplib::Response& res) {
-        ifstream file("userlist.txt");
+        ifstream file("app/userlist.txt");
         if (!file.is_open()) {
-            res.status = 404;
-            res.set_content("File 'userlist.txt' not found!", "text/plain");
-            cerr << "Error: Cannot open userlist.txt for reading" << endl;
-            return;
+            // 如果app/userlist.txt不存在，回退到本地的userlist.txt
+            file.open("userlist.txt");
+            if (!file.is_open()) {
+                res.status = 404;
+                res.set_content("File 'userlist.txt' not found!", "text/plain");
+                cerr << "Error: Cannot open userlist.txt for reading" << endl;
+                return;
+            }
         }
         
         stringstream buffer;
@@ -148,7 +210,7 @@ int main() {
         
         res.set_content(buffer.str(), "text/plain");
         res.set_header("Content-Type", "text/plain; charset=utf-8");
-        cout << "[FILE] userlist.txt served" << endl;
+        cout << "[FILE] userlist.txt served from app/ directory" << endl;
     });
     
     svr.Post("/app/new-user/register", [](const httplib::Request& req, httplib::Response& res) {
@@ -188,6 +250,9 @@ int main() {
             
             file << username << ":" << password << endl;
             file.close();
+            
+            // 同步到app/userlist.txt
+            syncUserListToAppPath();
             
             cout << "[LOG] User registered: " << username << endl;
             
