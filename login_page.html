@@ -184,20 +184,32 @@
 
                 const result = await response.text();
                 
+                // 关键修复：检查响应是否为错误消息
                 if (response.ok) {
-                    showTip('登录成功！', 'success');
-                    UID = result;
-                    logined = 1;
-                    localStorage.setItem('userToken', result);
+                    // 检查结果是否看起来像有效的UID（不是错误消息）
+                    const errorMessages = ["Incorrect ID or password", "UID not authorized", "not authorized"];
+                    const isError = errorMessages.some(msg => result.includes(msg));
                     
-                    console.log('登录成功，用户：', result);
-                    
-                    setTimeout(() => {
-                        window.location.href = '/main';
-                    }, 1000);
+                    if (result && !isError) {
+                        showTip('登录成功！', 'success');
+                        UID = result;
+                        logined = 1;
+                        localStorage.setItem('userToken', result);
+                        
+                        console.log('登录成功，用户：', result);
+                        
+                        setTimeout(() => {
+                            window.location.href = '/main';
+                        }, 1000);
+                    } else {
+                        // 如果是错误消息
+                        showTip(result || '登录失败', 'error');
+                        console.error('登录失败：', result);
+                    }
                 } else {
-                    showTip(result || 'ID或密码错误', 'error');
-                    console.error('登录失败：', result);
+                    // HTTP状态码不是2xx
+                    showTip(result || '登录失败', 'error');
+                    console.error('登录失败，HTTP状态：', response.status, '消息：', result);
                 }
             } catch (error) {
                 showTip('网络异常或密码加密失败', 'error');
@@ -229,4 +241,3 @@
 </body>
 
 </html>
-
