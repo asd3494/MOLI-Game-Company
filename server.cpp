@@ -84,6 +84,16 @@ bool findUserInFile(const string& username, const string& password) {
     return false;
 }
 
+// 辅助函数：从URL路径中提取用户名
+string extractUsernameFromPath(const string& path) {
+    // 路径格式应该是: /app/users/check/username
+    size_t last_slash = path.find_last_of('/');
+    if (last_slash != string::npos) {
+        return path.substr(last_slash + 1);
+    }
+    return "";
+}
+
 int main() {
     // 启动时加载已注册用户
     loadRegisteredUsers();
@@ -322,15 +332,32 @@ int main() {
         cout << "[API] User list requested, returned " << registeredUsers.size() << " users" << endl;
     });
     
-    // 新增：检查用户名是否可用
-    svr.Get("/app/users/check/:username", [](const httplib::Request& req, httplib::Response& res) {
-        string username = req.path_params.at("username");
+    // 新增：检查用户名是否可用 - httplib 0.8.6兼容版本
+    // 使用查询参数方式: GET /app/users/check?username=testuser
+    svr.Get("/app/users/check", [](const httplib::Request& req, httplib::Response& res) {
+        // 在httplib 0.8.6中，使用req.get_param_value获取查询参数
+        string username;
+        
+        // 方式1：使用get_param_value
+        if (req.has_param("username")) {
+            username = req.get_param_value("username");
+        }
+        // 方式2：也可以从URL中解析
+        else {
+            // 尝试从路径解析：/app/users/check/username
+            username = extractUsernameFromPath(req.path);
+        }
         
         if (username.empty()) {
             res.status = 400;
-            res.set_content("用户名不能为空", "text/plain");
+            res.set_content("请提供用户名参数", "text/plain");
             return;
         }
+        
+        // 输出调试信息
+        cout << "[CHECK] Checking username: " << username << endl;
+        cout << "[CHECK] Path: " << req.path << endl;
+        cout << "[CHECK] Has param 'username': " << (req.has_param("username") ? "true" : "false") << endl;
         
         if (registeredUsers.find(username) != registeredUsers.end()) {
             res.set_content("unavailable", "text/plain");
@@ -339,6 +366,21 @@ int main() {
             res.set_content("available", "text/plain");
             cout << "[CHECK] Username check: " << username << " is available" << endl;
         }
+    });
+    
+    // 添加一个简单的路由处理器来测试参数
+    svr.Get("/test/params", [](const httplib::Request& req, httplib::Response& res) {
+        ostringstream oss;
+        oss << "Path: " << req.path << "\n";
+        oss << "Query string: " << req.body << "\n"; // 注意：在0.8.6中，查询参数在req.body中
+        
+        // 输出所有头部信息用于调试
+        oss << "\nHeaders:\n";
+        for (const auto& header : req.headers) {
+            oss << header.first << ": " << header.second << "\n";
+        }
+        
+        res.set_content(oss.str(), "text/plain");
     });
     
     int port = 8080;
