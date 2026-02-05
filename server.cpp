@@ -322,9 +322,18 @@ int main() {
         cout << "[API] User list requested, returned " << registeredUsers.size() << " users" << endl;
     });
     
-    // 新增：检查用户名是否可用
-    svr.Get("/app/users/check/:username", [](const httplib::Request& req, httplib::Response& res) {
-        string username = req.path_params.at("username");
+    // 新增：检查用户名是否可用 - 修复版本
+    svr.Get("/app/users/check", [](const httplib::Request& req, httplib::Response& res) {
+        // 从查询参数获取用户名
+        auto username_param = req.params.find("username");
+        
+        if (username_param == req.params.end()) {
+            res.status = 400;
+            res.set_content("请提供用户名参数", "text/plain");
+            return;
+        }
+        
+        string username = username_param->second;
         
         if (username.empty()) {
             res.status = 400;
