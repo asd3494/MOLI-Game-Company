@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOLI game company - 注册</title>
     <style>
-        /* 样式完全不变，与登录页保持统一 */
+        /* 样式保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -134,7 +134,7 @@
         <div class="tip" id="tipBox"></div>
 
         <div class="login-link">
-            已有账号？<a href="login" target="_self">立即登录</a>
+            已有账号？<a href="/auth/login" target="_self">立即登录</a>
         </div>
     </div>
 
@@ -148,7 +148,6 @@
         const registerBtn = document.getElementById('registerBtn');
         const tipBox = document.getElementById('tipBox');
 
-        // ========== 核心：纯SHA256哈希函数（与登录页完全一致） ==========
         async function sha256(password) {
             try {
                 const passwordUtf8 = new TextEncoder().encode(password);
@@ -161,13 +160,11 @@
             }
         }
 
-        // ========== 注册提交函数（无盐值，仅提交ID:SHA256哈希值） ==========
         async function submitRegister() {
             const userName = userNameInput.value.trim();
             const rawPwd = userPwdInput.value.trim();
             const rawPwdConfirm = userPwdConfirmInput.value.trim();
 
-            // 前端原始密码一致性校验（无修改，保证用户输入正确）
             if (!userName) {
                 showTip('请设置用户ID', 'error');
                 userNameInput.focus();
@@ -199,9 +196,7 @@
             clearTip();
 
             try {
-                // 原始密码转纯SHA256哈希值
                 const pwdHash = await sha256(rawPwd);
-                // 提交格式：ID:哈希值（无需提交确认密码）
                 const submitText = `${userName}:${pwdHash}`;
 
                 const response = await fetch('/app/new-user/register', {
@@ -212,27 +207,24 @@
                     body: submitText
                 });
 
-                const result = await response.json();
-                if (result.status === 'success') {
-                    showTip(result.message || '注册成功！', 'success');
+                // 关键修改：改为纯文本响应
+                const result = await response.text();
+                
+                if (response.ok) {
+                    showTip('注册成功！正在跳转到登录页面...', 'success');
                     registered = 1;
                     UID = userName;
-                    console.log('注册成功：', result);
-                    if (result.redirect) {
-                        setTimeout(() => {
-                            window.location.href = result.redirect;
-                        }, 1500);
-                    } else {
-                        resetForm();
-                    }
-                } else if (result.status === 'error') {
-                    showTip(result.message || '注册失败，请稍后重试', 'error');
-                    console.error('注册失败：', result);
+                    console.log('注册成功');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/auth/login';
+                    }, 1500);
                 } else {
-                    showTip('服务器响应格式异常', 'error');
+                    showTip(result || '注册失败，请稍后重试', 'error');
+                    console.error('注册失败：', result);
                 }
             } catch (error) {
-                showTip(error.message || '网络异常或密码加密失败', 'error');
+                showTip('网络异常或密码加密失败', 'error');
                 console.error('注册请求异常：', error);
             } finally {
                 registerBtn.disabled = false;
@@ -240,24 +232,18 @@
             }
         }
 
-        // 辅助函数（无修改）
         function showTip(text, type) {
             tipBox.innerText = text;
             tipBox.className = `tip ${type}`;
         }
+        
         function clearTip() {
             tipBox.innerText = '';
             tipBox.className = 'tip';
         }
-        function resetForm() {
-            userNameInput.value = '';
-            userPwdInput.value = '';
-            userPwdConfirmInput.value = '';
-            userNameInput.focus();
-        }
 
-        // 事件绑定（无修改）
         registerBtn.addEventListener('click', submitRegister);
+        
         [userNameInput, userPwdInput, userPwdConfirmInput].forEach(input => {
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') submitRegister();
