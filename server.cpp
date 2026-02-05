@@ -5,12 +5,41 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
+#include <set>
 
 using namespace std;
+
+// 全局变量存储已注册的用户，用于快速查找
+set<string> registeredUsers;
+
+// 加载已注册用户到内存
+void loadRegisteredUsers() {
+    ifstream file("userlist.txt");
+    if (!file.is_open()) {
+        cout << "[INFO] userlist.txt not found, starting with empty user list" << endl;
+        return;
+    }
+    
+    string line;
+    while (getline(file, line)) {
+        size_t colon_pos = line.find(":");
+        if (colon_pos != string::npos && colon_pos > 0) {
+            string username = line.substr(0, colon_pos);
+            username.erase(username.find_last_not_of(" \n\r\t") + 1);
+            if (!username.empty()) {
+                registeredUsers.insert(username);
+                cout << "[LOAD] Loaded user: " << username << endl;
+            }
+        }
+    }
+    file.close();
+    cout << "[INFO] Total " << registeredUsers.size() << " users loaded" << endl;
+}
 
 bool isUIDAllowed(const string& uid) {
     ifstream file("allow.txt");
     if (!file.is_open()) {
+        cerr << "Warning: Cannot open allow.txt" << endl;
         return false;
     }
     string line;
@@ -41,6 +70,10 @@ bool findUserInFile(const string& username, const string& password) {
             string file_user = line.substr(0, colon_pos);
             string file_pass = line.substr(colon_pos + 1);
             
+            // 去除空白字符
+            file_user.erase(file_user.find_last_not_of(" \n\r\t") + 1);
+            file_pass.erase(file_pass.find_last_not_of(" \n\r\t") + 1);
+            
             if (file_user == username && file_pass == password) {
                 file.close();
                 return true;
@@ -51,66 +84,11 @@ bool findUserInFile(const string& username, const string& password) {
     return false;
 }
 
-// 同步写入到app/userlist.txt的函数
-void syncUserListToAppPath() {
-    ifstream source("userlist.txt");
-    if (!source.is_open()) {
-        cerr << "Error: Cannot open userlist.txt for reading" << endl;
-        return;
-    }
-    
-    ofstream dest("app/userlist.txt");
-    if (!dest.is_open()) {
-        // 尝试创建目录
-        system("mkdir -p app");
-        dest.open("app/userlist.txt");
-        if (!dest.is_open()) {
-            cerr << "Error: Cannot open app/userlist.txt for writing" << endl;
-            source.close();
-            return;
-        }
-    }
-    
-    string line;
-    while (getline(source, line)) {
-        dest << line << endl;
-    }
-    
-    source.close();
-    dest.close();
-    cout << "[SYNC] userlist.txt synced to app/userlist.txt" << endl;
-}
-
-// 读取app/userlist.txt到userlist.txt的函数
-void syncUserListFromAppPath() {
-    ifstream source("app/userlist.txt");
-    if (!source.is_open()) {
-        cerr << "Warning: Cannot open app/userlist.txt for reading, using local userlist.txt" << endl;
-        return;
-    }
-    
-    ofstream dest("userlist.txt");
-    if (!dest.is_open()) {
-        cerr << "Error: Cannot open userlist.txt for writing" << endl;
-        source.close();
-        return;
-    }
-    
-    string line;
-    while (getline(source, line)) {
-        dest << line << endl;
-    }
-    
-    source.close();
-    dest.close();
-    cout << "[SYNC] app/userlist.txt synced to userlist.txt" << endl;
-}
-
 int main() {
-    httplib::Server svr;
+    // 启动时加载已注册用户
+    loadRegisteredUsers();
     
-    // 启动时从app/userlist.txt同步到本地
-    syncUserListFromAppPath();
+    httplib::Server svr;
     
     svr.Options(".*", [](const httplib::Request& req, httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -192,16 +170,12 @@ int main() {
     
     // 提供app/userlist.txt的访问
     svr.Get("/app/userlist.txt", [](const httplib::Request& req, httplib::Response& res) {
-        ifstream file("app/userlist.txt");
+        ifstream file("userlist.txt");
         if (!file.is_open()) {
-            // 如果app/userlist.txt不存在，回退到本地的userlist.txt
-            file.open("userlist.txt");
-            if (!file.is_open()) {
-                res.status = 404;
-                res.set_content("File 'userlist.txt' not found!", "text/plain");
-                cerr << "Error: Cannot open userlist.txt for reading" << endl;
-                return;
-            }
+            res.status = 404;
+            res.set_content("File 'userlist.txt' not found!", "text/plain");
+            cerr << "Error: Cannot open userlist.txt for reading" << endl;
+            return;
         }
         
         stringstream buffer;
@@ -210,7 +184,7 @@ int main() {
         
         res.set_content(buffer.str(), "text/plain");
         res.set_header("Content-Type", "text/plain; charset=utf-8");
-        cout << "[FILE] userlist.txt served from app/ directory" << endl;
+        cout << "[FILE] userlist.txt served" << endl;
     });
     
     svr.Post("/app/new-user/register", [](const httplib::Request& req, httplib::Response& res) {
@@ -228,22 +202,53 @@ int main() {
             
             if (username.empty() || password.empty()) {
                 res.status = 400;
-                res.set_content("Username and password cannot be empty", "text/plain");
+                res.set_content("用户名和密码不能为空", "text/plain");
                 cout << "[LOG] Error: Empty username or password" << endl;
                 return;
             }
             
+            // 检查UID是否已经在allow.txt中允许
             if (!isUIDAllowed(username)) {
                 res.status = 403;
-                res.set_content("UID is not authorized to register", "text/plain");
+                res.set_content("此UID未授权注册", "text/plain");
                 cout << "[LOG] Registration rejected: UID not in allow.txt - " << username << endl;
                 return;
+            }
+            
+            // 检查用户名是否已存在
+            if (registeredUsers.find(username) != registeredUsers.end()) {
+                res.status = 409; // HTTP 409 Conflict
+                res.set_content("用户ID已存在", "text/plain");
+                cout << "[LOG] Registration rejected: User already exists - " << username << endl;
+                return;
+            }
+            
+            // 检查文件中的重复（双重检查）
+            ifstream checkFile("userlist.txt");
+            if (checkFile.is_open()) {
+                string line;
+                while (getline(checkFile, line)) {
+                    size_t pos = line.find(":");
+                    if (pos != string::npos) {
+                        string existing_user = line.substr(0, pos);
+                        existing_user.erase(existing_user.find_last_not_of(" \n\r\t") + 1);
+                        if (existing_user == username) {
+                            checkFile.close();
+                            res.status = 409;
+                            res.set_content("用户ID已存在", "text/plain");
+                            cout << "[LOG] Registration rejected: User found in file - " << username << endl;
+                            registeredUsers.insert(username); // 添加到内存缓存
+                            return;
+                        }
+                    }
+                }
+                checkFile.close();
             }
             
             ofstream file("userlist.txt", ios::app);
             if (!file.is_open()) {
                 res.status = 500;
-                res.set_content("Server error: cannot open user database", "text/plain");
+                res.set_content("服务器错误：无法打开用户数据库", "text/plain");
                 cerr << "Error: Cannot open userlist.txt for writing" << endl;
                 return;
             }
@@ -251,16 +256,17 @@ int main() {
             file << username << ":" << password << endl;
             file.close();
             
-            // 同步到app/userlist.txt
-            syncUserListToAppPath();
+            // 添加到内存缓存
+            registeredUsers.insert(username);
             
-            cout << "[LOG] User registered: " << username << endl;
+            cout << "[LOG] User registered successfully: " << username << endl;
+            cout << "[LOG] Total registered users: " << registeredUsers.size() << endl;
             
-            res.set_content("Registration successful", "text/plain");
+            res.set_content("注册成功", "text/plain");
             
         } else {
             res.status = 400;
-            res.set_content("Data format should be: username:password", "text/plain");
+            res.set_content("数据格式应为：用户名:密码", "text/plain");
             cout << "[LOG] Error: Invalid request body format" << endl;
         }
     });
@@ -288,18 +294,50 @@ int main() {
             } else {
                 if (!isUIDAllowed(username)) {
                     res.status = 403;
-                    res.set_content("UID not authorized to login", "text/plain");
+                    res.set_content("此UID未授权登录", "text/plain");
                     cout << "[LOG] Login rejected: UID not in allow.txt - " << username << endl;
                 } else {
                     res.status = 401;
-                    res.set_content("Incorrect ID or password", "text/plain");
+                    res.set_content("用户名或密码错误", "text/plain");
                     cout << "[LOG] Login failed (wrong password), user: " << username << endl;
                 }
             }
         } else {
             res.status = 400;
-            res.set_content("Data format should be: ID:password", "text/plain");
+            res.set_content("数据格式应为：用户名:密码", "text/plain");
             cout << "[LOG] Error: Invalid request body format" << endl;
+        }
+    });
+    
+    // 新增：获取已注册用户列表API
+    svr.Get("/app/users/list", [](const httplib::Request& req, httplib::Response& res) {
+        ostringstream oss;
+        oss << "已注册用户数量: " << registeredUsers.size() << "\n\n";
+        
+        for (const auto& user : registeredUsers) {
+            oss << user << "\n";
+        }
+        
+        res.set_content(oss.str(), "text/plain");
+        cout << "[API] User list requested, returned " << registeredUsers.size() << " users" << endl;
+    });
+    
+    // 新增：检查用户名是否可用
+    svr.Get("/app/users/check/:username", [](const httplib::Request& req, httplib::Response& res) {
+        string username = req.path_params.at("username");
+        
+        if (username.empty()) {
+            res.status = 400;
+            res.set_content("用户名不能为空", "text/plain");
+            return;
+        }
+        
+        if (registeredUsers.find(username) != registeredUsers.end()) {
+            res.set_content("unavailable", "text/plain");
+            cout << "[CHECK] Username check: " << username << " is unavailable" << endl;
+        } else {
+            res.set_content("available", "text/plain");
+            cout << "[CHECK] Username check: " << username << " is available" << endl;
         }
     });
     
