@@ -1,8 +1,11 @@
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
-# 安装最小化依赖
+# 设置非交互式安装以避免提示
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 更新并安装必要工具
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    apt-get install -y \
     g++ \
     make \
     curl \
@@ -11,47 +14,29 @@ RUN apt-get update && \
 # 设置工作目录
 WORKDIR /app
 
-# 首先复制最不可能变化的文件
-COPY httplib.h .
+# 复制所有文件
+COPY . .
 
-# 复制HTML文件
-COPY index.html .
-COPY login_page.html .
-COPY signup_page.html .
+# 创建必要的文件（如果不存在）
+RUN if [ ! -f userlist.txt ]; then \
+        echo "# MOLI Game Company User Database" > userlist.txt; \
+    fi && \
+    if [ ! -f allow.txt ]; then \
+        echo "1234009" > allow.txt; \
+        echo "1384733" >> allow.txt; \
+        echo "1802886" >> allow.txt; \
+        echo "1581608" >> allow.txt; \
+    fi
 
-# 复制JavaScript文件
-COPY triangle-effect.js .
+# 编译服务器（使用简单命令）
+RUN g++ -o server server.cpp -lpthread -std=c++11 2>&1 | tee build.log && \
+    if [ ! -f server ]; then echo "Compilation failed!" && cat build.log && exit 1; fi
 
-# 复制配置文件
-COPY allow.txt .
-
-# 复制用户数据文件（如果存在）
-COPY userlist.txt . 2>/dev/null || echo "userlist.txt not found, will create on startup"
-
-# 最后复制C++源文件
-COPY server.cpp .
-COPY save.cpp .
-
-# 创建空的userlist.txt（如果不存在）
-RUN touch userlist.txt
-
-# 简单的编译命令
-RUN g++ -std=c++11 -o server server.cpp -lpthread
-
-# 检查编译是否成功
-RUN if [ ! -f server ]; then echo "Compilation failed!" && exit 1; fi
-
-# 显示文件信息
-RUN echo "=== Build completed ===" && \
-    echo "Files in /app:" && \
-    ls -la && \
-    echo "=== Server binary ===" && \
-    file server && \
-    echo "=== Userlist preview ===" && \
-    head -5 userlist.txt
+# 显示成功信息
+RUN echo "Build successful! Files in /app:" && ls -la
 
 # 暴露端口
 EXPOSE 8080
 
-# 简单的启动命令
+# 启动命令
 CMD ["./server"]
