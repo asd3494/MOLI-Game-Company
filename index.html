@@ -166,7 +166,14 @@
             align-items: center;
             gap: 10px;
         }
+        
+        /* 为三角形效果添加的样式 - 确保按钮等元素在上面 */
+        .uid-display, .container, .buttons-container, .basic, h1 {
+            position: relative;
+            z-index: 1001;
+        }
     </style>
+    <script src="triangle-effect.js"></script>
 </head>
 <body>
     <!-- 新增：右上角UID显示框 -->
@@ -294,4 +301,5 @@
         }
     </script>
 </body>
+
 
