@@ -2,304 +2,267 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MOLI game company</title>
-    <script src="triangle-effect.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOLI game company - 登录</title>
     <style>
         * {
-            font-family: Consolas, "Courier New", monospace;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* 右上角UID显示框样式 */
-        .uid-display {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #444444;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 100;
-            border: 1px solid #666666;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: block; /* 默认隐藏 */
-        }
-
-        /* 其他样式保持不变 */
-        .fof {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #0000ff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 50px;
-            border: none;
-        }
-
-        .basic {
-            width: 250px;
-            height: 30px;
-            font-size: 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            transition: background-color 0.3s;
-            margin: 5px 0;
-        }
-
-        .btn-red {
-            background-color: #ff0000;
-        }
-
-        .btn-red:hover {
-            background-color: #ff5555;
-        }
-        
-        .btn-blu {
-            background-color: #0000ff;
-        }
-
-        .btn-blu:hover {
-            background-color: #5555ff;
-        }
-        
-        .btn-gre {
-            background-color: #00aa00;
-        }
-
-        .btn-gre:hover {
-            background-color: #33aa33;
-        }
-        
-        .btn-yel {
-            background-color: #cccc00;
-        }
-
-        .btn-yel:hover {
-            background-color: #aaaa55;
-        }
-        
-        .btn-yel-sp {
-            position:fixed;
-            top:35%;
-            bottom:38%;
-            left:33%;
-            right:33%;
-            background-color: #cccc00;
-        }
-
-        .btn-yel-sp:hover {
-            background-color: #aaaa55;
-        }
-
-        .input-style {
-            width: 200px;
-            height: 50px;
-            padding: 0 10px;
-            font-size: 15px;
-            font-family: Consolas, "Courier New", monospace;
-            border: none;
-            border-radius: 10px;
-            outline: none;
-            z-index:1111; 
-        }
-        
-        .input-style-sp {
-            position:fixed;
-            top:30%;
-            bottom:33%;
-            left:33%;
-            right:33%;
-            width: 200px;
-            height: 50px;
-            padding: 0 10px;
-            font-size: 15px;
-            font-family: Consolas, "Courier New", monospace;
-            border: none;
-            border-radius: 10px;
-            outline: none;
-            z-index:1111; 
+        body {
+            background: #fff;
+            color: #24292f;
+            line-height: 1.5;
+            padding: 2rem;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         h1 {
-            margin: 20px;
-            font-size: 28px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ffffff;
             color: #ffffff;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-container {
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .input-style {
+            width: 100%;
+            height: 40px;
+            padding: 0 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 2;
+            background: white;
+        }
+
+        .input-style:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 40px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .submit-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .submit-btn:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .tip {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tip.success {
+            color: #16a34a;
+        }
+
+        .tip.error {
+            color: #dc2626;
+        }
+
+        .register-link {
+            margin-top: 1.5rem;
             text-align: center;
+            font-size: 0.875rem;
+            color: #57606a;
+            position: relative;
+            z-index: 2;
+        }
+
+        .register-link a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
         }
         
-        .mark{
+        /* 背景按钮样式 */
+        .background-btn {
             position: fixed;
             top: 0;
-            bottom: 0;
             left: 0;
-            right: 0;
-            background-color: #000000aa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 10px;
+            width: 100%;
+            height: 100%;
+            background-color: #0f0f30;
             border: none;
-            z-index:1000; 
-            display: none;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .buttons-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* 为三角形效果添加的样式 - 确保按钮等元素在上面 */
-        .uid-display, .container, .buttons-container, .basic, h1 {
-            position: relative;
-            z-index: 1001;
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
+    
+    <!-- 引入三角形效果脚本 -->
     <script src="triangle-effect.js"></script>
 </head>
 <body>
-    <!-- 新增：右上角UID显示框 -->
-    <div class="uid-display" id="uidDisplay">
-        UID: <span id="currentUID">未登录</span>
-    </div>
+    <!-- 背景按钮 -->
+    <button class="background-btn"></button>
+    
+    <h1>MOLI game company - 登录</h1>
+    
+    <div class="form-container">
+        <input 
+            type="text" 
+            class="input-style" 
+            id="userId" 
+            placeholder="请输入用户ID"
+            autocomplete="off"
+        >
+        <input 
+            type="password" 
+            class="input-style" 
+            id="userPwd" 
+            placeholder="请输入密码"
+            autocomplete="current-password"
+        >
+        <button class="submit-btn" id="submitBtn">登录</button>
+        <div class="tip" id="tipBox"></div>
 
-     <button style="z-index:-1;background-color:#0f0f30;position:fixed;top:0;bottom:0;left:0;right:0;"></button>
-
-    <div class="container">
-        <h1>MOLI game company onlined</h1>
-        
-        <div class="buttons-container">
-            <button class="basic btn-blu" onclick="gotoluogu()">main page (luogu team)</button>
-            <button class="basic btn-red" onclick="newpost()">new post</button>
-            <button class="basic btn-gre" onclick="gotodomain()" id="gotodomain">go to domain</button>
-            <button class="basic btn-yel" onclick="showlogin()" id="lshower">log in</button>
+        <div class="register-link">
+            暂无账号？<a href="/auth/signup" target="_self">立即注册</a>
         </div>
     </div>
 
     <script>
-        var logined = 0;
-        var usersbeok = [1802886, 1384733, 1581608];
-        var UID = 0;
-        var token = localStorage.getItem('userToken'); // 从本地存储获取token
+        let logined = 0;
+        let UID = 0;
 
-        // 页面加载时检查登录状态并显示UID
-        document.addEventListener('DOMContentLoaded', function() {
-            checkLoginStatus();
-        });
+        const userIdInput = document.getElementById('userId');
+        const userPwdInput = document.getElementById('userPwd');
+        const submitBtn = document.getElementById('submitBtn');
+        const tipBox = document.getElementById('tipBox');
 
-        // 检查登录状态并更新UID显示
-        function checkLoginStatus() {
-            if (token) {
-                fetch('/auth/uid', {
-                    headers: {'Authorization': `Bearer ${token}`}
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.text();
-                    } else {
-                        localStorage.removeItem('userToken');
-                        token = null;
-                        return null;
-                    }
-                })
-                .then(uid => {
-                    if (uid) {
-                        updateUIDDisplay(uid);
-                        logined = 1;
-                        // 更新登录按钮为注销
-                        document.getElementById('lshower').textContent = 'log out';
-                        document.getElementById('lshower').onclick = logout;
-                    } else {
-                        resetUIDDisplay();
-                    }
-                })
-                .catch(error => {
-                    console.error('检查登录状态失败:', error);
-                    resetUIDDisplay();
+        async function sha256(password) {
+            try {
+                const passwordUtf8 = new TextEncoder().encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', passwordUtf8);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch (error) {
+                console.error('SHA256哈希失败：', error);
+                throw new Error('密码加密失败');
+            }
+        }
+
+        async function submitForm() {
+            const userId = userIdInput.value.trim();
+            const rawPwd = userPwdInput.value.trim();
+
+            if (!userId) {
+                showTip('请输入用户ID', 'error');
+                return;
+            }
+            if (!rawPwd) {
+                showTip('请输入密码', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = '登录中...';
+            clearTip();
+
+            try {
+                const pwdHash = await sha256(rawPwd);
+                const submitText = `${userId}:${pwdHash}`;
+
+                const response = await fetch('/app/new-user/json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain; charset=UTF-8'
+                    },
+                    body: submitText
                 });
-            } else {
-                resetUIDDisplay();
+
+                const result = await response.text();
+                
+                if (response.ok) {
+                    const errorMessages = ["Incorrect ID or password", "UID not authorized", "not authorized"];
+                    const isError = errorMessages.some(msg => result.includes(msg));
+                    
+                    if (result && !isError) {
+                        showTip('登录成功！', 'success');
+                        UID = result;
+                        logined = 1;
+                        localStorage.setItem('userToken', result);
+                        
+                        console.log('登录成功，用户：', result);
+                        
+                        setTimeout(() => {
+                            window.location.href = '/main';
+                        }, 1000);
+                    } else {
+                        showTip(result || '登录失败', 'error');
+                        console.error('登录失败：', result);
+                    }
+                } else {
+                    showTip(result || '登录失败', 'error');
+                    console.error('登录失败，HTTP状态：', response.status, '消息：', result);
+                }
+            } catch (error) {
+                showTip('网络异常或密码加密失败', 'error');
+                console.error('登录请求异常：', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = '登录';
             }
         }
 
-        // 更新UID显示
-        function updateUIDDisplay(uid) {
-            document.getElementById('uidDisplay').style.display = 'block';
-            document.getElementById('currentUID').textContent = uid;
-            UID = uid;
-        }
-
-        // 重置UID显示（未登录状态）
-        function resetUIDDisplay() {
-            document.getElementById('uidDisplay').style.display = 'none';
-            document.getElementById('currentUID').textContent = '未登录';
-            UID = 0;
-            logined = 0;
-            // 恢复登录按钮
-            document.getElementById('lshower').textContent = 'log in';
-            document.getElementById('lshower').onclick = showlogin;
-        }
-
-        // 注销函数
-        function logout() {
-            localStorage.removeItem('userToken');
-            token = null;
-            resetUIDDisplay();
-            alert('已注销');
-        }
-
-        // 修改登录逻辑：存储token并更新显示
-        function handleLoginSuccess(uid) {
-            localStorage.setItem('userToken', uid);
-            token = uid;
-            updateUIDDisplay(uid);
-            logined = 1;
-            // 更新按钮为注销
-            document.getElementById('lshower').textContent = 'log out';
-            document.getElementById('lshower').onclick = logout;
-            alert('登录成功！当前用户: ' + uid);
-        }
-
-        // 原函数保持不变
-        function gotoluogu() {
-            window.location.href = "https://luogu.com.cn/team/94555";
+        function showTip(text, type) {
+            tipBox.innerText = text;
+            tipBox.className = `tip ${type}`;
         }
         
-        function newpost() {
-            alert('loading');
+        function clearTip() {
+            tipBox.innerText = '';
+            tipBox.className = 'tip';
         }
+
+        submitBtn.addEventListener('click', submitForm);
         
-        function gotodomain() {
-            if (UID) {
-                alert('跳转到用户域: ' + UID);
-                // 这里可以添加跳转到用户域的逻辑
-            } else {
-                alert('请先登录');
-            }
-        }
-        
-        function showlogin() {
-            window.location.href = "/auth/login";
-        }
+        [userIdInput, userPwdInput].forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitForm();
+            });
+        });
     </script>
 </body>
-
-
+</html>
