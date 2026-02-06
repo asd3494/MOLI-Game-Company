@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOLI game company - 注册</title>
-    <script src="triangle-effect.js"></script>
     <style>
-        /* 样式保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -30,10 +28,14 @@
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #ffffff;
             color: #ffffff;
+            position: relative;
+            z-index: 2;
         }
 
         .form-container {
             width: 100%;
+            position: relative;
+            z-index: 2;
         }
 
         .input-style {
@@ -46,6 +48,9 @@
             margin-bottom: 1rem;
             outline: none;
             transition: all 0.2s ease;
+            position: relative;
+            z-index: 2;
+            background: white;
         }
 
         .input-style:focus {
@@ -65,6 +70,8 @@
             cursor: pointer;
             transition: background 0.2s ease;
             margin-top: 0.5rem;
+            position: relative;
+            z-index: 2;
         }
 
         .submit-btn:hover {
@@ -80,6 +87,8 @@
             margin-top: 1rem;
             font-size: 0.875rem;
             line-height: 1.4;
+            position: relative;
+            z-index: 2;
         }
 
         .tip.success {
@@ -95,6 +104,8 @@
             text-align: center;
             font-size: 0.875rem;
             color: #57606a;
+            position: relative;
+            z-index: 2;
         }
 
         .login-link a {
@@ -105,18 +116,29 @@
         .login-link a:hover {
             text-decoration: underline;
         }
-
-        /* 为三角形效果添加的样式 - 确保按钮等元素在上面 */
-        .uid-display, .container, .buttons-container, .basic, h1 {
-            position: relative;
-            z-index: 1001;
+        
+        /* 背景按钮样式 */
+        .background-btn {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0f0f30;
+            border: none;
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
+    
+    <!-- 引入三角形效果脚本 -->
     <script src="triangle-effect.js"></script>
 </head>
 <body>
+    <!-- 背景按钮 -->
+    <button class="background-btn"></button>
+    
     <h1>MOLI game company - 注册</h1>
-    <button style="z-index:-1;background-color:#0f0f30;position:fixed;top:0;bottom:0;left:0;right:0;"></button>
 
     <div class="form-container">
         <input 
@@ -217,7 +239,6 @@
                     body: submitText
                 });
 
-                // 关键修改：改为纯文本响应
                 const result = await response.text();
                 
                 if (response.ok) {
@@ -261,7 +282,4 @@
         });
     </script>
 </body>
-
 </html>
-
-
