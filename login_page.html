@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOLI game company - 登录</title>
-    <script src="triangle-effect.js"></script>
     <style>
         * {
             margin: 0;
@@ -28,11 +27,15 @@
             margin-bottom: 2rem;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #ffffff;
-            color: #ffffff
+            color: #ffffff;
+            position: relative;
+            z-index: 2;
         }
 
         .form-container {
             width: 100%;
+            position: relative;
+            z-index: 2;
         }
 
         .input-style {
@@ -45,6 +48,9 @@
             margin-bottom: 1rem;
             outline: none;
             transition: all 0.2s ease;
+            position: relative;
+            z-index: 2;
+            background: white;
         }
 
         .input-style:focus {
@@ -63,6 +69,8 @@
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s ease;
+            position: relative;
+            z-index: 2;
         }
 
         .submit-btn:hover {
@@ -78,6 +86,8 @@
             margin-top: 1rem;
             font-size: 0.875rem;
             line-height: 1.4;
+            position: relative;
+            z-index: 2;
         }
 
         .tip.success {
@@ -93,6 +103,8 @@
             text-align: center;
             font-size: 0.875rem;
             color: #57606a;
+            position: relative;
+            z-index: 2;
         }
 
         .register-link a {
@@ -104,19 +116,29 @@
             text-decoration: underline;
         }
         
-        /* 为三角形效果添加的样式 - 确保按钮等元素在上面 */
-        .uid-display, .container, .buttons-container, .basic, h1 {
-            position: relative;
-            z-index: 1001;
+        /* 背景按钮样式 */
+        .background-btn {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0f0f30;
+            border: none;
+            z-index: -1;
+            pointer-events: none;
         }
     </style>
+    
+    <!-- 引入三角形效果脚本 -->
     <script src="triangle-effect.js"></script>
 </head>
 <body>
+    <!-- 背景按钮 -->
+    <button class="background-btn"></button>
+    
     <h1>MOLI game company - 登录</h1>
-
-
-    <button style="z-index:-1;background-color:#0f0f30;position:fixed;top:0;bottom:0;left:0;right:0;"></button>
+    
     <div class="form-container">
         <input 
             type="text" 
@@ -192,9 +214,7 @@
 
                 const result = await response.text();
                 
-                // 关键修复：检查响应是否为错误消息
                 if (response.ok) {
-                    // 检查结果是否看起来像有效的UID（不是错误消息）
                     const errorMessages = ["Incorrect ID or password", "UID not authorized", "not authorized"];
                     const isError = errorMessages.some(msg => result.includes(msg));
                     
@@ -210,12 +230,10 @@
                             window.location.href = '/main';
                         }, 1000);
                     } else {
-                        // 如果是错误消息
                         showTip(result || '登录失败', 'error');
                         console.error('登录失败：', result);
                     }
                 } else {
-                    // HTTP状态码不是2xx
                     showTip(result || '登录失败', 'error');
                     console.error('登录失败，HTTP状态：', response.status, '消息：', result);
                 }
@@ -247,7 +265,4 @@
         });
     </script>
 </body>
-
 </html>
-
-
